@@ -1,0 +1,24 @@
+{
+    "name": "lanin/laravel-csv-seed",
+    "description": "Seed your database with csv data.",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Maxim Lanin",
+            "email": "max@lanin.me"
+        }
+    ],
+    "require": {
+        "php": ">=5.4.0",
+        "illuminate/support": "~5.0"
+    },
+    "autoload": {
+        "psr-4": {
+           "Lanin\\CsvSeeder\\": "src/"
+        },
+        "classmap": [
+            "tests/CsvSeederTest.php"
+        ]
+    },
+    "minimum-stability": "dev"
+}
