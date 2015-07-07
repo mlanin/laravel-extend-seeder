@@ -58,6 +58,9 @@ class CsvSeeder extends \Illuminate\Database\Seeder {
 	protected function boot()
 	{
 		$this->assertCanSeed();
+
+		\DB::disableQueryLog();
+		Model::unguard();
 	}
 
 	/**
@@ -176,7 +179,7 @@ class CsvSeeder extends \Illuminate\Database\Seeder {
 	 * @param  string  $csvFile
 	 * @param  null  $model
 	 */
-	public function seedWithCsv($csvFile = '', $model = null)
+	public function seedModelWithCsv($csvFile = '', $model = null)
 	{
 		$model = $this->resolveModel($model);
 
@@ -188,7 +191,7 @@ class CsvSeeder extends \Illuminate\Database\Seeder {
 		if (isset($this->command))
 		{
 			$this->command->getOutput()->writeln(
-				sprintf('<info>Seeded:</info> %s.%s (%d rows)', $this->getDatabaseName($model), $model->getTable(), count($inserted))
+				sprintf('<info>Seeded:</info> %s.%s (%d rows)', $this->getDatabaseName($model), $model->getTable(), $inserted)
 			);
 		}
 	}
@@ -204,7 +207,7 @@ class CsvSeeder extends \Illuminate\Database\Seeder {
 	{
 		$filename = $this->getCsvFilename($model, $filename);
 
-		$basePath = self::getCsvPath() ?: database_path('seeds/csv');
+		$basePath = self::getCsvPath() ?: database_path('seeds/data');
 
 		return $basePath . DIRECTORY_SEPARATOR . $filename;
 	}
@@ -251,15 +254,15 @@ class CsvSeeder extends \Illuminate\Database\Seeder {
 				if ($i == $this->chunkSize)
 				{
 					$model->insert($data);
-					$data = [];
-					$i = 0;
 
 					$inserted += $this->chunkSize;
+					$data = [];
+					$i = 0;
 				}
 			}
 
 			$model->insert($data);
-			$inserted += $this->chunkSize;
+			$inserted += count($data);
 
 			fclose($handle);
 		}
@@ -347,7 +350,7 @@ class CsvSeeder extends \Illuminate\Database\Seeder {
 		}
 		else
 		{
-			$model->delete();
+			\DB::table($model->getTable())->delete();
 		}
 	}
 }

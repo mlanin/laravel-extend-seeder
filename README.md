@@ -21,6 +21,18 @@ All you have to do is to extend your base Seeder class with `\Lanin\CsvSeeder\Cs
 class Seeder extends \Lanin\CsvSeeder\CsvSeeder { }
 ```
 
+## Preparing
+
+Every time you try to seed lots of data, you have to unguard your models. Now you don't have to do it. 
+They will be unguarded automatically in the boot method, that fires right on the start. 
+Also it will disable query log, that extremely slows data import.
+
+### Environment protection
+
+If you are afraid to corrupt your production database with seeding it with test data, even if artisan asks you if you want to do it,
+you can specify `protected $environment` variable in your seeder. Boot method will check if current environment doesn't match the set one
+and throw an exception, so you can be sure you don't break your production data.
+
 ## Seeding
 
 After you extended your base seeder, you will receive two additional methods
