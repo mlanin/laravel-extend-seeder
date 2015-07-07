@@ -9,7 +9,7 @@ class CsvSeederTest extends \TestCase {
 	{
 		// Create our testing DB tables
 		$this->artisan('migrate', [
-			'--path' => 'vendor/lanin/laravel-csv-seeder/tests/migrations',
+			'--path' => 'vendor/lanin/laravel-extend-seeder/tests/migrations',
 		]);
 	}
 
@@ -42,7 +42,7 @@ class CsvSeederTest extends \TestCase {
 }
 
 
-class CsvSeederDatabaseSeeder extends \Lanin\CsvSeeder\CsvSeeder {
+class CsvSeederDatabaseSeeder extends \Lanin\ExtendSeeder\Seeder {
 
 	/**
 	 * Boot seeder.
@@ -51,7 +51,7 @@ class CsvSeederDatabaseSeeder extends \Lanin\CsvSeeder\CsvSeeder {
 	{
 		parent::boot();
 
-		self::setCsvPath('vendor/lanin/laravel-csv-seeder/tests/csv');
+		self::setCsvPath('vendor/lanin/laravel-extend-seeder/tests/csv');
 	}
 
 	/**
@@ -63,7 +63,7 @@ class CsvSeederDatabaseSeeder extends \Lanin\CsvSeeder\CsvSeeder {
 	}
 }
 
-class AccountsCsvSeederTableSeeder extends \Lanin\CsvSeeder\CsvSeeder {
+class AccountsCsvSeederTableSeeder extends \Lanin\ExtendSeeder\Seeder {
 
 	/**
 	 * Overwrite database name.

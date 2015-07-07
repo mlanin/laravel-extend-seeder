@@ -1,6 +1,6 @@
 {
-    "name": "lanin/laravel-csv-seed",
-    "description": "Seed your database with csv data.",
+    "name": "lanin/laravel-extend-seed",
+    "description": "Extension for Laravel seeder. Seed your database with CSV data.",
     "license": "MIT",
     "authors": [
         {
@@ -14,7 +14,7 @@
     },
     "autoload": {
         "psr-4": {
-           "Lanin\\CsvSeeder\\": "src/"
+           "Lanin\\ExtendSeeder\\": "src/"
         },
         "classmap": [
             "tests/CsvSeederTest.php"

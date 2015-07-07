@@ -1,8 +1,8 @@
-<?php namespace Lanin\CsvSeeder;
+<?php namespace Lanin\ExtendSeeder;
 
 use Illuminate\Database\Eloquent\Model;
 
-class CsvSeeder extends \Illuminate\Database\Seeder {
+class Seeder extends \Illuminate\Database\Seeder {
 
 	/**
 	 * @var string
@@ -162,7 +162,7 @@ class CsvSeeder extends \Illuminate\Database\Seeder {
 
 		$seeder = $this->resolve($class);
 
-		if ($seeder instanceof \Lanin\CsvSeeder\CsvSeeder)
+		if ($seeder instanceof \Lanin\ExtendSeeder\Seeder)
 		{
 			$seeder->setModel($this->resolveModel($model));
 		}
@@ -179,7 +179,7 @@ class CsvSeeder extends \Illuminate\Database\Seeder {
 	 * @param  string  $csvFile
 	 * @param  null  $model
 	 */
-	public function seedModelWithCsv($csvFile = '', $model = null)
+	public function seedWithCsv($csvFile = '', $model = null)
 	{
 		$model = $this->resolveModel($model);
 
