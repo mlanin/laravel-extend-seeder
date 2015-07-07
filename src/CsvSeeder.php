@@ -40,6 +40,11 @@ class CsvSeeder extends \Illuminate\Database\Seeder {
 	protected static $csvPath = '';
 
 	/**
+	 * @var bool
+	 */
+	protected static $truncate = false;
+
+	/**
 	 * Create a new Seeder.
 	 */
 	public function __construct()
@@ -109,6 +114,16 @@ class CsvSeeder extends \Illuminate\Database\Seeder {
 	}
 
 	/**
+	 * Get cvs delimiter symbol.
+	 *
+	 * @return string
+	 */
+	public static function useTruncate()
+	{
+		return self::$truncate = true;
+	}
+
+	/**
 	 * Save seeding model.
 	 *
 	 * @param  mixed  $model
@@ -116,7 +131,7 @@ class CsvSeeder extends \Illuminate\Database\Seeder {
 	 */
 	public function setModel($model)
 	{
-		$this->model = $this->prepareModel($model);
+		$this->model = $this->resolveModel($model);
 
 		return $this;
 	}
@@ -140,13 +155,13 @@ class CsvSeeder extends \Illuminate\Database\Seeder {
 	 */
 	public function seedModel($model)
 	{
-		$class = studly_case($this->prepareModel($model)->getTable()) . 'TableSeeder';
+		$class = studly_case($this->resolveModel($model)->getTable()) . 'TableSeeder';
 
 		$seeder = $this->resolve($class);
 
 		if ($seeder instanceof \Lanin\CsvSeeder\CsvSeeder)
 		{
-			$seeder->setModel($this->prepareModel($model));
+			$seeder->setModel($this->resolveModel($model));
 		}
 
 		$seeder->run();
@@ -163,21 +178,17 @@ class CsvSeeder extends \Illuminate\Database\Seeder {
 	 */
 	public function seedWithCsv($csvFile = '', $model = null)
 	{
-		$model = ! is_null($model) ? $this->prepareModel($model) : $this->getModel();
+		$model = $this->resolveModel($model);
 
-		$csvFile = $this->getCsvFile($model, $csvFile);
-		$csvData = $this->csvToArray($csvFile, self::getCsvDelimiter());
+		$this->clearTable($model);
 
-		$model->truncate();
-		foreach (array_chunk($csvData, 200) as $chunk)
-		{
-			$model->insert($chunk);
-		}
+		$csvFile  = $this->getCsvFile($model, $csvFile);
+		$inserted = $this->parseAndSeed($model, $csvFile, self::getCsvDelimiter());
 
 		if (isset($this->command))
 		{
 			$this->command->getOutput()->writeln(
-				sprintf('<info>Seeded:</info> %s.%s (%d rows)', $this->getDatabaseName($model), $model->getTable(), count($csvData))
+				sprintf('<info>Seeded:</info> %s.%s (%d rows)', $this->getDatabaseName($model), $model->getTable(), count($inserted))
 			);
 		}
 	}
@@ -199,27 +210,32 @@ class CsvSeeder extends \Illuminate\Database\Seeder {
 	}
 
 	/**
-	 * Convert CSV file to array of rows.
+	 * Convert CSV file to array of rows and seed them into the model.
 	 *
+	 * @param  Model  $model
 	 * @param  string  $filename
 	 * @param  string  $delimiter
 	 * @return array
 	 */
-	protected function csvToArray($filename = '', $delimiter = ',')
+	protected function parseAndSeed(Model $model, $filename, $delimiter = ',')
 	{
-		$data 	= [];
-		$header = $this->headers;
+		$data 	  = [];
+		$inserted = 0;
+		$header   = $this->headers;
 
 		if ( ! file_exists($filename) || ! is_readable($filename))
 		{
-			return $data;
+			throw new \RuntimeException(
+				sprintf("Can't find csv file [%s] for seeder [%s].", $filename, get_class($this))
+			);
 		}
 
 		$handle = $this->ifGzipped($filename) ? gzopen($filename, 'r') : fopen($filename, 'r');
 
 		if ($handle !== false)
 		{
-			while (($row = fgetcsv($handle, 1000, $delimiter)) !== false)
+			$i = 0;
+			while (($row = fgetcsv($handle, 0, $delimiter)) !== false)
 			{
 				if (empty($header))
 				{
@@ -229,12 +245,29 @@ class CsvSeeder extends \Illuminate\Database\Seeder {
 				{
 					$data[] = array_combine($header, $row);
 				}
+
+				$i++;
+
+				if ($i == $this->chunkSize)
+				{
+					$model->insert($data);
+					$data = [];
+					$i = 0;
+
+					$inserted += $this->chunkSize;
+				}
 			}
+
+			$model->insert($data);
+			$inserted += $this->chunkSize;
+
 			fclose($handle);
 		}
 
-		return $data;
+		return $inserted;
 	}
+
+
 
 	/**
 	 * Check if csv file was gzipped.
@@ -282,15 +315,15 @@ class CsvSeeder extends \Illuminate\Database\Seeder {
 	 * @return Model|null
 	 * @throws \RuntimeException
 	 */
-	protected function prepareModel($model)
+	protected function resolveModel($model)
 	{
 		switch (true)
 		{
+			case is_null($model) && ! is_null($this->model):
+				return $this->model;
 			case is_string($model) && class_exists($model):
 				return new $model;
 			case $model instanceof Model:
-				return $model;
-			case is_null($model) && ! is_null($this->model):
 				return $model;
 			default:
 				break;
@@ -299,5 +332,22 @@ class CsvSeeder extends \Illuminate\Database\Seeder {
 		throw new \RuntimeException(
 			sprintf("Can't seed model [%s] in seeder [%s].", $model, get_class($this))
 		);
+	}
+
+	/**
+	 * Erase all data in the table.
+	 *
+	 * @param  Model  $model
+	 */
+	protected function clearTable(Model $model)
+	{
+		if (self::$truncate)
+		{
+			$model->truncate();
+		}
+		else
+		{
+			$model->delete();
+		}
 	}
 }

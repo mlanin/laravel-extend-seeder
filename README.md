@@ -13,7 +13,7 @@ To get the latest version of Laravel DevStatus, simply add the following line to
 
 You'll then need to run `composer install` or `composer update` to download it and have the autoloader updated.
 
-Once it is installed you don't have to register any ServiceProvider, Facade or publish any configs.
+Once it was installed you don't have to register any ServiceProvider, Facade or publish any configs.
 
 All you have to do is to extend your base Seeder class with `\Lanin\CsvSeeder\CsvSeeder` and you are good to go!
 
@@ -33,7 +33,7 @@ By default you have to fire `call` method that will resolve a specified seeder a
 
 This method will do it for you. It will find related seeder by model's table and pass your model to it.
 
-This method returns resolved seeder object, so you can chain your seed methods.
+**Hint:** This method returns resolved seeder object, so you can chain your seed methods.
 
 **Example:**
 
@@ -69,9 +69,9 @@ class AccountsTableSeeder extends Seeder {
 
 This method seeds your database with data from the related csv files.
 
-By default, it tries to find them in your /database/seeds/csv directory.
+By default, it tries to find them in your `/database/seeds/csv` directory.
 
-Files have to be names as {$databaseName}_{$tableName}.csv, but you can always overwrite this behaviour.
+Files have to be names as `{$databaseName}_{$tableName}.csv`, but you can always overwrite this behaviour.
 
 If you are calling this method via table seeder, that was called via `seedModel`, it already knows everything about your model and can resolve related csv file iteslf.
 

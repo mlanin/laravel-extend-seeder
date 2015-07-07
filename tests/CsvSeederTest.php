@@ -51,7 +51,7 @@ class CsvSeederDatabaseSeeder extends \Lanin\CsvSeeder\CsvSeeder {
 	{
 		parent::boot();
 
-		self::setCsvPath(__DIR__ . '/csv');
+		self::setCsvPath('vendor/lanin/laravel-csv-seeder/tests/csv');
 	}
 
 	/**
