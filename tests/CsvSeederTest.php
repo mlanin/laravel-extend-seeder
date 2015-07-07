@@ -9,7 +9,7 @@ class CsvSeederTest extends \TestCase {
 	{
 		// Create our testing DB tables
 		$this->artisan('migrate', [
-			'--path' => __DIR__ . '/migrations',
+			'--path' => 'vendor/lanin/laravel-csv-seeder/tests/migrations',
 		]);
 	}
 
@@ -29,38 +29,49 @@ class CsvSeederTest extends \TestCase {
 			'database' => ':memory:',
 			'prefix'   => '',
 		]);
+
+		$this->runDatabaseMigrations();
 	}
 
 	public function test_seeding()
 	{
+		$this->seed('CsvSeederDatabaseSeeder');
 
+		$this->seeInDatabase('accounts_csv_seeder', ['login' => 'john.doe']);
 	}
 }
 
-class DatabaseSeeder extends \Lanin\CsvSeeder\CsvSeeder {
+class CsvSeederDatabaseSeeder extends \Lanin\CsvSeeder\CsvSeeder {
 
 	/**
-	 * Seed your database
+	 * Seed your database.
 	 */
 	public function run()
 	{
-		$this->seedModel(Account::class);
+		self::setCsvPath(__DIR__ . '/csv');
+
+		$this->seedModel(AccountCsvSeeder::class);
 	}
 }
 
-class AccountsTableSeeder extends \Lanin\CsvSeeder\CsvSeeder {
+class AccountsCsvSeederTableSeeder extends \Lanin\CsvSeeder\CsvSeeder {
+
+	/**
+	 * Overwrite database name.
+	 *
+	 * @var string
+	 */
+	protected $database = 'tests';
 
 	/**
 	 * Seed model with CSV.
-	 *
-	 * @param \Illuminate\Database\Eloquent\Model $model
 	 */
-	public function run(\Illuminate\Database\Eloquent\Model $model)
+	public function run()
 	{
-		$this->seedModelWithCsv($model);
+		$this->seedModelWithCsv();
 	}
 }
 
-class Account extends \Illuminate\Database\Eloquent\Model {
-
+class AccountCsvSeeder extends \Illuminate\Database\Eloquent\Model {
+	protected $table = 'accounts_csv_seeder';
 }

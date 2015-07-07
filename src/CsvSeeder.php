@@ -10,14 +10,19 @@ class CsvSeeder extends \Illuminate\Database\Seeder {
 	protected $environment = null;
 
 	/**
+	 * @var Model|null
+	 */
+	protected $model = null;
+
+	/**
 	 * @var int
 	 */
 	protected $chunkSize = 200;
 
 	/**
-	 * @var string
+	 * @var string|null
 	 */
-	protected $database = '';
+	protected $database = null;
 
 	/**
 	 * @var string
@@ -32,7 +37,7 @@ class CsvSeeder extends \Illuminate\Database\Seeder {
 	/**
 	 * @var string
 	 */
-	protected $csvPath = 'seeds/data';
+	protected static $csvPath = '';
 
 	/**
 	 * Create a new Seeder.
@@ -46,27 +51,77 @@ class CsvSeeder extends \Illuminate\Database\Seeder {
 	}
 
 	/**
+	 * @param string $csvPath
+	 */
+	public static function setCsvPath($csvPath)
+	{
+		self::$csvPath = $csvPath;
+	}
+
+	/**
+	 * @return string
+	 */
+	public static function getCsvPath()
+	{
+		return self::$csvPath;
+	}
+
+	/**
+	 * Save seeding model.
+	 *
+	 * @param  Model  $model
+	 * @return $this
+	 */
+	public function setModel(Model $model)
+	{
+		$this->model = $model;
+
+		return $this;
+	}
+
+	/**
+	 * Return seeding model.
+	 *
+	 * @return Model
+	 */
+	public function getModel()
+	{
+		return $this->model;
+	}
+
+	/**
 	 * Seed the given model. Resolves model's table and fires associated seed class.
 	 * User model will be seeded via UsersTableSeeder, etc.
 	 *
 	 * @param  Model  $model
 	 */
-	public function seedModel(Model $model)
+	public function seedModel($model)
 	{
-		$class = $model->getTable() . 'TableSeeder';
+		$model = is_string($model) ? new $model : $model;
 
-		$this->resolve($class)->run($model);
+		$class = studly_case($model->getTable()) . 'TableSeeder';
+
+		$seeder = $this->resolve($class);
+
+		if ($seeder instanceof \Lanin\CsvSeeder\CsvSeeder)
+		{
+			$seeder->setModel($model);
+		}
+
+		$seeder->run();
 	}
 
 	/**
 	 * Seed model with CSV data.
 	 * By default Seeder will try to find file in database/{$this->csvPath}/$database_$table.csv.
 	 *
-	 * @param  Model $model
+	 * @param  Model|null $model
 	 * @param  string  $csvFile
 	 */
-	public function seedModelWithCsv(Model $model, $csvFile = '')
+	public function seedModelWithCsv(Model $model = null, $csvFile = '')
 	{
+		$model = $model ?: $this->getModel();
+
 		$csvFile = $this->getCsvFile($model, $csvFile);
 		$csvData = $this->csvToArray($csvFile, $this->delimiter);
 
@@ -95,7 +150,9 @@ class CsvSeeder extends \Illuminate\Database\Seeder {
 	{
 		$filename = $this->getCsvFilename($model, $filename);
 
-		return database_path($this->csvPath) . '/' . $filename . '.csv';
+		$basePath = self::getCsvPath() ?: database_path('seeds/csv');
+
+		return $basePath . '/' . $filename . '.csv';
 	}
 
 	/**
@@ -157,7 +214,7 @@ class CsvSeeder extends \Illuminate\Database\Seeder {
 	 */
 	protected function getDatabaseName(Model $model)
 	{
-		return $this->database ?: $model->getConnection()->getDatabaseName();
+		return is_null($this->database) ? $model->getConnection()->getDatabaseName() : $this->database;
 	}
 
 	/**
