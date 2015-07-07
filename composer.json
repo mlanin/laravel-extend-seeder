@@ -1,5 +1,5 @@
 {
-    "name": "lanin/laravel-extend-seed",
+    "name": "lanin/laravel-extend-seeder",
     "description": "Extension for Laravel seeder. Seed your database with CSV data.",
     "keywords": ["laravel", "framework", "seeding"],
     "license": "MIT",
