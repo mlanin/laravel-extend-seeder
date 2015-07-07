@@ -68,7 +68,7 @@ class AccountsCsvSeederTableSeeder extends \Lanin\CsvSeeder\CsvSeeder {
 	 */
 	public function run()
 	{
-		$this->seedModelWithCsv();
+		$this->seedWithCsv();
 	}
 }
 

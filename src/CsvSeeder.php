@@ -44,6 +44,24 @@ class CsvSeeder extends \Illuminate\Database\Seeder {
 	 */
 	public function __construct()
 	{
+		$this->boot();
+	}
+
+	/**
+	 * Boot seeder.
+	 */
+	protected function boot()
+	{
+		$this->assertCanSeed();
+	}
+
+	/**
+	 * Check if seeder can be launched.
+	 *
+	 * @return bool
+	 */
+	protected function assertCanSeed()
+	{
 		if ( ! is_null($this->environment) && ! \App::environment($this->environment))
 		{
 			throw new \RuntimeException("You can seed this data only on [{$this->environment}] environment.");
@@ -51,6 +69,8 @@ class CsvSeeder extends \Illuminate\Database\Seeder {
 	}
 
 	/**
+	 * Change path where csv files are stored.
+	 *
 	 * @param string $csvPath
 	 */
 	public static function setCsvPath($csvPath)
@@ -59,6 +79,8 @@ class CsvSeeder extends \Illuminate\Database\Seeder {
 	}
 
 	/**
+	 * Get path where csv files are stored.
+	 *
 	 * @return string
 	 */
 	public static function getCsvPath()
@@ -93,19 +115,17 @@ class CsvSeeder extends \Illuminate\Database\Seeder {
 	 * Seed the given model. Resolves model's table and fires associated seed class.
 	 * User model will be seeded via UsersTableSeeder, etc.
 	 *
-	 * @param  Model  $model
+	 * @param  mixed  $model
 	 */
 	public function seedModel($model)
 	{
-		$model = is_string($model) ? new $model : $model;
-
-		$class = studly_case($model->getTable()) . 'TableSeeder';
+		$class = studly_case($this->prepareModel($model)->getTable()) . 'TableSeeder';
 
 		$seeder = $this->resolve($class);
 
 		if ($seeder instanceof \Lanin\CsvSeeder\CsvSeeder)
 		{
-			$seeder->setModel($model);
+			$seeder->setModel($this->prepareModel($model));
 		}
 
 		$seeder->run();
@@ -115,12 +135,12 @@ class CsvSeeder extends \Illuminate\Database\Seeder {
 	 * Seed model with CSV data.
 	 * By default Seeder will try to find file in database/{$this->csvPath}/$database_$table.csv.
 	 *
-	 * @param  Model|null $model
 	 * @param  string  $csvFile
+	 * @param  null  $model
 	 */
-	public function seedModelWithCsv(Model $model = null, $csvFile = '')
+	public function seedWithCsv($csvFile = '', $model = null)
 	{
-		$model = $model ?: $this->getModel();
+		$model = ! is_null($model) ? $this->prepareModel($model) : $this->getModel();
 
 		$csvFile = $this->getCsvFile($model, $csvFile);
 		$csvData = $this->csvToArray($csvFile, $this->delimiter);
@@ -209,6 +229,8 @@ class CsvSeeder extends \Illuminate\Database\Seeder {
 	}
 
 	/**
+	 * Retrieve database name.
+	 *
 	 * @param  Model  $model
 	 * @return string
 	 */
@@ -218,6 +240,8 @@ class CsvSeeder extends \Illuminate\Database\Seeder {
 	}
 
 	/**
+	 * Prepares csv file name.
+	 *
 	 * @param  Model  $model
 	 * @param  string  $filename
 	 * @return string
@@ -226,5 +250,31 @@ class CsvSeeder extends \Illuminate\Database\Seeder {
 	{
 		$database = $this->getDatabaseName($model);
 		return $filename ?: $database . '_' . $model->getTable();
+	}
+
+	/**
+	 * Return model instance.
+	 *
+	 * @param  mixed  $model
+	 * @return Model|null
+	 * @throws \RuntimeException
+	 */
+	protected function prepareModel($model)
+	{
+		switch (true)
+		{
+			case is_string($model) && class_exists($model):
+				return new $model;
+			case $model instanceof Model:
+				return $model;
+			case is_null($model) && ! is_null($this->model):
+				return $model;
+			default:
+				break;
+		}
+
+		throw new \RuntimeException(
+			sprintf("Can't seed model [%s] in seeder [%s].", $model, get_class($this))
+		);
 	}
 }

@@ -25,6 +25,10 @@ class Seeder extends \Illuminate\Database\Seeder {
 
 ## Seeding
 
+After you extended your base seeder, you will receive two additional methods:
+
+public function seedModel($model);
+
 
 ## Contributing
 
