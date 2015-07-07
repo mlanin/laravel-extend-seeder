@@ -27,12 +27,12 @@ class CsvSeeder extends \Illuminate\Database\Seeder {
 	/**
 	 * @var string
 	 */
-	protected $delimiter = ',';
+	protected $headers = [];
 
 	/**
 	 * @var string
 	 */
-	protected $headers = [];
+	protected static $delimiter = ',';
 
 	/**
 	 * @var string
@@ -75,7 +75,7 @@ class CsvSeeder extends \Illuminate\Database\Seeder {
 	 */
 	public static function setCsvPath($csvPath)
 	{
-		self::$csvPath = $csvPath;
+		self::$csvPath = base_path($csvPath);
 	}
 
 	/**
@@ -89,14 +89,34 @@ class CsvSeeder extends \Illuminate\Database\Seeder {
 	}
 
 	/**
+	 * Change cvs delimiter symbol.
+	 *
+	 * @param string $delimiter
+	 */
+	public static function setCsvDelimiter($delimiter)
+	{
+		self::$delimiter = $delimiter;
+	}
+
+	/**
+	 * Get cvs delimiter symbol.
+	 *
+	 * @return string
+	 */
+	public static function getCsvDelimiter()
+	{
+		return self::$delimiter;
+	}
+
+	/**
 	 * Save seeding model.
 	 *
-	 * @param  Model  $model
+	 * @param  mixed  $model
 	 * @return $this
 	 */
-	public function setModel(Model $model)
+	public function setModel($model)
 	{
-		$this->model = $model;
+		$this->model = $this->prepareModel($model);
 
 		return $this;
 	}
@@ -112,10 +132,11 @@ class CsvSeeder extends \Illuminate\Database\Seeder {
 	}
 
 	/**
-	 * Seed the given model. Resolves model's table and fires associated seed class.
-	 * User model will be seeded via UsersTableSeeder, etc.
+	 * Launch seeder associated with the specified model.
+	 * E.g. User model will be seeded via UsersTableSeeder, etc.
 	 *
-	 * @param  mixed  $model
+	 * @param  mixed $model
+	 * @return \Illuminate\Database\Seeder
 	 */
 	public function seedModel($model)
 	{
@@ -129,6 +150,8 @@ class CsvSeeder extends \Illuminate\Database\Seeder {
 		}
 
 		$seeder->run();
+
+		return $seeder;
 	}
 
 	/**
@@ -143,7 +166,7 @@ class CsvSeeder extends \Illuminate\Database\Seeder {
 		$model = ! is_null($model) ? $this->prepareModel($model) : $this->getModel();
 
 		$csvFile = $this->getCsvFile($model, $csvFile);
-		$csvData = $this->csvToArray($csvFile, $this->delimiter);
+		$csvData = $this->csvToArray($csvFile, self::getCsvDelimiter());
 
 		$model->truncate();
 		foreach (array_chunk($csvData, 200) as $chunk)
@@ -172,7 +195,7 @@ class CsvSeeder extends \Illuminate\Database\Seeder {
 
 		$basePath = self::getCsvPath() ?: database_path('seeds/csv');
 
-		return $basePath . '/' . $filename . '.csv';
+		return $basePath . DIRECTORY_SEPARATOR . $filename;
 	}
 
 	/**
@@ -249,7 +272,7 @@ class CsvSeeder extends \Illuminate\Database\Seeder {
 	protected function getCsvFilename(Model $model, $filename)
 	{
 		$database = $this->getDatabaseName($model);
-		return $filename ?: $database . '_' . $model->getTable();
+		return $filename ?: $database . '_' . $model->getTable() . '.csv';
 	}
 
 	/**

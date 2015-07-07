@@ -41,15 +41,24 @@ class CsvSeederTest extends \TestCase {
 	}
 }
 
+
 class CsvSeederDatabaseSeeder extends \Lanin\CsvSeeder\CsvSeeder {
+
+	/**
+	 * Boot seeder.
+	 */
+	protected function boot()
+	{
+		parent::boot();
+
+		self::setCsvPath(__DIR__ . '/csv');
+	}
 
 	/**
 	 * Seed your database.
 	 */
 	public function run()
 	{
-		self::setCsvPath(__DIR__ . '/csv');
-
 		$this->seedModel(AccountCsvSeeder::class);
 	}
 }
