@@ -1,7 +1,7 @@
 {
     "name": "lanin/laravel-extend-seeder",
     "description": "Extension for Laravel seeder. Seed your database with CSV data.",
-    "keywords": ["laravel", "framework", "seeding"],
+    "keywords": ["laravel", "framework", "seeding", "csv", "extension"],
     "license": "MIT",
     "authors": [
         {
