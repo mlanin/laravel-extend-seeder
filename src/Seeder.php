@@ -207,7 +207,7 @@ class Seeder extends \Illuminate\Database\Seeder {
 	{
 		$filename = $this->getCsvFilename($model, $filename);
 
-		$basePath = self::getCsvPath() ?: database_path('seeds/data');
+		$basePath = self::getCsvPath() ?: database_path('seeds/csv');
 
 		return $basePath . DIRECTORY_SEPARATOR . $filename;
 	}
