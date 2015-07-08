@@ -1,5 +1,5 @@
 # Laravel-Extend-Seeder
-> Seed your Laravel project's DB with CSV data. 
+> Extend Laravel seeder and populate your DB with CSV data. 
 
 ## Installation
 
