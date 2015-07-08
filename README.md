@@ -5,7 +5,7 @@
 
 [PHP](https://php.net) 5.4+ or [HHVM](http://hhvm.com) 3.3+, [Composer](https://getcomposer.org) and [Laravel](http://laravel.com) 5.0+ are required.
 
-To get the latest version of Laravel DevStatus, simply add the following line to the require block of your `composer.json` file.
+To get the latest version of Laravel-CSV-Seeder, simply add the following line to the require block of your `composer.json` file.
 
 ```
 "lanin/laravel-csv-seeder": "dev-master"
