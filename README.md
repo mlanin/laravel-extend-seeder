@@ -85,7 +85,7 @@ By default, it tries to find them in your `/database/seeds/csv` directory.
 
 Files have to be names as `{$databaseName}_{$tableName}.csv`, but you can always overwrite this behaviour.
 
-> Note! If you are using the same seeds to seed mysql and sqlite databases (ie. while testing), you have to define your database name manually, or Seeder will try to find csv files like `database.sqlite_your_table.sqlite`. You can do it via `\Lanin\ExtendSeeder\Seeder::setDatabaseName('database_name');` method.
+> Note! If you are using the same seeds to seed mysql and sqlite databases (ie. while testing), you have to define your database name manually, or Seeder will try to find csv files like `database.sqlite_your_table.csv`. You can do it via `\Lanin\ExtendSeeder\Seeder::setDatabaseName('database_name');` method.
 
 If you are calling this method via table seeder, that was called via `seedModel`, it already knows everything about your model and can resolve related csv file iteslf.
 
