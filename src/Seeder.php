@@ -20,14 +20,14 @@ class Seeder extends \Illuminate\Database\Seeder {
 	protected $chunkSize = 200;
 
 	/**
-	 * @var string|null
-	 */
-	protected $database = null;
-
-	/**
 	 * @var string
 	 */
 	protected $headers = [];
+
+	/**
+	 * @var string|null
+	 */
+	protected static $database = null;
 
 	/**
 	 * @var string
@@ -74,6 +74,16 @@ class Seeder extends \Illuminate\Database\Seeder {
 		{
 			throw new \RuntimeException("You can seed this data only on [{$this->environment}] environment.");
 		}
+	}
+
+	/**
+	 * Set default database name. Useful for seeding sqlite db.
+	 *
+	 * @param string $database
+	 */
+	public static function setDatabaseName($database)
+	{
+		self::$database = $database;
 	}
 
 	/**
@@ -295,7 +305,7 @@ class Seeder extends \Illuminate\Database\Seeder {
 	 */
 	protected function getDatabaseName(Model $model)
 	{
-		return is_null($this->database) ? $model->getConnection()->getDatabaseName() : $this->database;
+		return self::$database ?: $model->getConnection()->getDatabaseName();
 	}
 
 	/**
