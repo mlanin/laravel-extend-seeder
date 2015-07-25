@@ -250,6 +250,8 @@ class Seeder extends \Illuminate\Database\Seeder {
 			$i = 0;
 			while (($row = fgetcsv($handle, 0, $delimiter)) !== false)
 			{
+				$this->fixNullValue($row);
+				
 				if (empty($header))
 				{
 					$header = $row;
@@ -280,8 +282,6 @@ class Seeder extends \Illuminate\Database\Seeder {
 		return $inserted;
 	}
 
-
-
 	/**
 	 * Check if csv file was gzipped.
 	 *
@@ -295,6 +295,22 @@ class Seeder extends \Illuminate\Database\Seeder {
 		finfo_close($fileInfo);
 
 		return strcmp($file_mime_type, "application/x-gzip") == 0;
+	}
+	
+	/**
+	 * Replace NULL string with real null value.
+	 *
+	 * @param  array  $row
+	 */
+	protected function fixNullValue(&$row)
+	{
+		array_walk($row, function(&$value)
+		{
+			if ($value === 'NULL' || $value === 'null')
+			{
+				$value = null;
+			}
+		});
 	}
 
 	/**
