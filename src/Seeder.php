@@ -376,7 +376,8 @@ class Seeder extends \Illuminate\Database\Seeder {
 		}
 		else
 		{
-			\DB::table($model->getTable())->delete();
+			$connection = $model->getConnection();
+			$connection->table($model->getTable())->delete();
 		}
 	}
 }
