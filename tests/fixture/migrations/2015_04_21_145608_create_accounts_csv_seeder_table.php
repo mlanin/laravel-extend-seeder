@@ -12,7 +12,7 @@ class CreateAccountsCsvSeederTable extends Migration {
 	 */
 	public function up()
 	{
-		Schema::create('accounts_csv_seeder', function(Blueprint $table) {
+		\Schema::create('accounts_csv_seeder', function(Blueprint $table) {
 			$table->increments('id');
             $table->string('login', 40)->unique();
             $table->boolean('active');
@@ -27,7 +27,7 @@ class CreateAccountsCsvSeederTable extends Migration {
 	 */
 	public function down()
 	{
-		Schema::drop('accounts_csv_seeder');
+		\Schema::drop('accounts_csv_seeder');
 	}
 
 }

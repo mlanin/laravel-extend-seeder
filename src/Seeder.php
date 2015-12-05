@@ -1,6 +1,7 @@
 <?php namespace Lanin\ExtendSeeder;
 
 use Illuminate\Database\Eloquent\Model;
+use ReflectionException;
 
 class Seeder extends \Illuminate\Database\Seeder {
 
@@ -93,7 +94,7 @@ class Seeder extends \Illuminate\Database\Seeder {
 	 */
 	public static function setCsvPath($csvPath)
 	{
-		self::$csvPath = base_path($csvPath);
+		self::$csvPath = $csvPath[0] == '/' ? $csvPath : base_path($csvPath);
 	}
 
 	/**
@@ -168,13 +169,24 @@ class Seeder extends \Illuminate\Database\Seeder {
 	 */
 	public function seedModel($model)
 	{
-		$class = studly_case($this->resolveModel($model)->getTable()) . 'TableSeeder';
+		$model = $this->resolveModel($model);
+		$seederClass = studly_case($model->getTable()) . 'TableSeeder';
 
-		$seeder = $this->resolve($class);
+		try
+		{
+			$seeder = $this->resolve($seederClass);
+		}
+		catch (ReflectionException $e)
+		{
+			$reflection = new \ReflectionClass($model);
+			$namespace  = $reflection->getNamespaceName();
+			$seederClass = $namespace . '\\' . $seederClass;
+			$seeder = $this->resolve($seederClass);
+		}
 
 		if ($seeder instanceof \Lanin\ExtendSeeder\Seeder)
 		{
-			$seeder->setModel($this->resolveModel($model));
+			$seeder->setModel($model);
 		}
 
 		$seeder->run();
@@ -333,7 +345,7 @@ class Seeder extends \Illuminate\Database\Seeder {
 	 */
 	protected function getCsvFilename(Model $model, $filename)
 	{
-		$database = $this->getDatabaseName($model);
+		$database = str_replace([':'], '', $this->getDatabaseName($model));
 		return $filename ?: $database . '_' . $model->getTable() . '.csv';
 	}
 

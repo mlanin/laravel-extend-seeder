@@ -1,48 +1,32 @@
-<?php
+<?php namespace Lanin\ExtendSeeder\Tests;
 
-class CsvSeederTest extends \TestCase {
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Lanin\ExtendSeeder\Seeder;
+use Schema;
 
-	/**
-	 * Migrate database.
-	 */
-	public function runDatabaseMigrations()
-	{
-		// Create our testing DB tables
-		$this->artisan('migrate', [
-			'--path' => 'vendor/lanin/laravel-extend-seeder/tests/migrations',
-		]);
-	}
-
-	/**
-	 * Setup the test environment.
-	 *
-	 * @return void
-	 */
-	public function setUp()
-	{
-		parent::setUp();
-
-		// Use an in-memory DB
-		$this->app['config']->set('database.default', 'csv_test');
-		$this->app['config']->set('database.connections.csv_test', [
-			'driver'   => 'sqlite',
-			'database' => ':memory:',
-			'prefix'   => '',
-		]);
-
-		$this->runDatabaseMigrations();
-	}
-
+class CsvSeederTest extends TestCase
+{
+	/** @test */
 	public function test_seeding()
 	{
-		$this->seed('CsvSeederDatabaseSeeder');
+		$migration = new CreateAccountsTable();
+		$migration->up();
 
-		$this->seeInDatabase('accounts_csv_seeder', ['login' => 'john.doe']);
+		$this->seed(CsvSeederDatabaseSeeder::class);
+
+		$this->seeInDatabase('accounts', ['login' => 'john.doe']);
 	}
 }
 
-
-class CsvSeederDatabaseSeeder extends \Lanin\ExtendSeeder\Seeder {
+/**
+ * Main seeder class.
+ *
+ * @package Lanin\ExtendSeeder\Tests
+ */
+class CsvSeederDatabaseSeeder extends Seeder
+{
 
 	/**
 	 * Boot seeder.
@@ -51,7 +35,7 @@ class CsvSeederDatabaseSeeder extends \Lanin\ExtendSeeder\Seeder {
 	{
 		parent::boot();
 
-		self::setCsvPath('vendor/lanin/laravel-extend-seeder/tests/csv');
+		self::setCsvPath(realpath(dirname(__DIR__) . '/tests/fixture/csv'));
 	}
 
 	/**
@@ -59,18 +43,23 @@ class CsvSeederDatabaseSeeder extends \Lanin\ExtendSeeder\Seeder {
 	 */
 	public function run()
 	{
-		$this->seedModel(AccountCsvSeeder::class);
+		$this->seedModel(Accounts::class);
 	}
 }
 
-class AccountsCsvSeederTableSeeder extends \Lanin\ExtendSeeder\Seeder {
-
+/**
+ * Seeder for Accounts model.
+ *
+ * @package Lanin\ExtendSeeder\Tests
+ */
+class AccountsTableSeeder extends Seeder
+{
 	/**
 	 * Overwrite database name.
 	 *
 	 * @var string
 	 */
-	protected $database = 'tests';
+	protected static $database = 'tests';
 
 	/**
 	 * Seed model with CSV.
@@ -81,6 +70,36 @@ class AccountsCsvSeederTableSeeder extends \Lanin\ExtendSeeder\Seeder {
 	}
 }
 
-class AccountCsvSeeder extends \Illuminate\Database\Eloquent\Model {
-	protected $table = 'accounts_csv_seeder';
+class Accounts extends Model
+{
+	protected $table = 'accounts';
+}
+
+class CreateAccountsTable extends Migration {
+
+	/**
+	 * Run the migrations.
+	 *
+	 * @return void
+	 */
+	public function up()
+	{
+		Schema::create('accounts', function(Blueprint $table) {
+			$table->increments('id');
+			$table->string('login', 40)->unique();
+			$table->boolean('active');
+			$table->timestamps();
+		});
+	}
+
+	/**
+	 * Reverse the migrations.
+	 *
+	 * @return void
+	 */
+	public function down()
+	{
+		Schema::drop('accounts');
+	}
+
 }
