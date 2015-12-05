@@ -1,4 +1,6 @@
 # Laravel-Extend-Seeder
+[![Travis](https://img.shields.io/travis/mlanin/laravel-extend-seeder.svg)](https://travis-ci.org/mlanin/laravel-extend-seeder)
+
 > Extend Laravel seeder and populate your DB with CSV data. 
 
 ## Installation
