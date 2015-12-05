@@ -8,12 +8,17 @@ use Schema;
 
 class CsvSeederTest extends TestCase
 {
-	/** @test */
-	public function test_seeding()
+	public function setUp()
 	{
+		parent::setUp();
+
 		$migration = new CreateAccountsTable();
 		$migration->up();
+	}
 
+	/** @test */
+	public function it_can_run_seed_model_from_csv_file()
+	{
 		$this->seed(CsvSeederDatabaseSeeder::class);
 
 		$this->seeInDatabase('accounts', ['login' => 'john.doe']);
@@ -70,11 +75,21 @@ class AccountsTableSeeder extends Seeder
 	}
 }
 
+/**
+ * Model Accounts.
+ *
+ * @package Lanin\ExtendSeeder\Tests
+ */
 class Accounts extends Model
 {
 	protected $table = 'accounts';
 }
 
+/**
+ * Migration for accounts table.
+ *
+ * @package Lanin\ExtendSeeder\Tests
+ */
 class CreateAccountsTable extends Migration {
 
 	/**
