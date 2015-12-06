@@ -40,6 +40,7 @@ class CsvSeederDatabaseSeeder extends Seeder
 	{
 		parent::boot();
 
+        self::$csvHasHeaders = true;
 		self::setCsvPath(realpath(dirname(__DIR__) . '/tests/fixture/csv'));
 	}
 

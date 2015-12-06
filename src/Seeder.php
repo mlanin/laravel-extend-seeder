@@ -21,11 +21,6 @@ class Seeder extends \Illuminate\Database\Seeder {
 	protected $chunkSize = 200;
 
 	/**
-	 * @var string
-	 */
-	protected $headers = [];
-
-	/**
 	 * @var string|null
 	 */
 	protected static $database = null;
@@ -44,6 +39,11 @@ class Seeder extends \Illuminate\Database\Seeder {
 	 * @var bool
 	 */
 	protected static $truncate = false;
+
+	/**
+	 * @var bool
+	 */
+	protected static $csvHasHeaders = false;
 
 	/**
 	 * Create a new Seeder.
@@ -128,13 +128,24 @@ class Seeder extends \Illuminate\Database\Seeder {
 	}
 
 	/**
-	 * Get cvs delimiter symbol.
+	 * Use truncating of the table instead if deleting all rows.
 	 *
 	 * @return string
 	 */
 	public static function useTruncate()
 	{
 		return self::$truncate = true;
+	}
+
+	/**
+     * Csv files have headers on the first row.
+     * They will be used as column names.
+	 *
+	 * @return string
+	 */
+	public static function csvHasHeaders()
+	{
+		return self::$csvHasHeaders = true;
 	}
 
 	/**
@@ -245,10 +256,10 @@ class Seeder extends \Illuminate\Database\Seeder {
 	protected function parseAndSeed(Model $model, $filename, $delimiter = ',')
 	{
 		$data 	  = [];
-		$inserted = 0;
-		$header   = $this->headers;
+        $headers  = [];
+        $inserted = 0;
 
-		if ( ! file_exists($filename) || ! is_readable($filename))
+        if ( ! file_exists($filename) || ! is_readable($filename))
 		{
 			throw new \RuntimeException(
 				sprintf("Can't find csv file [%s] for seeder [%s].", $filename, get_class($this))
@@ -262,16 +273,13 @@ class Seeder extends \Illuminate\Database\Seeder {
 			$i = 0;
 			while (($row = fgetcsv($handle, 0, $delimiter)) !== false)
 			{
-				$this->fixNullValue($row);
-				
-				if (empty($header))
-				{
-					$header = $row;
-				}
-				else
-				{
-					$data[] = array_combine($header, $row);
-				}
+                if (self::$csvHasHeaders && empty($headers))
+                {
+                    $headers = $row;
+                    continue;
+                }
+
+                $data[] = $this->prepareRow($row, $headers);
 
 				$i++;
 
@@ -279,9 +287,9 @@ class Seeder extends \Illuminate\Database\Seeder {
 				{
 					$model->insert($data);
 
-					$inserted += $this->chunkSize;
-					$data = [];
-					$i = 0;
+                    $i = 0;
+                    $data = [];
+                    $inserted += $this->chunkSize;
 				}
 			}
 
@@ -303,18 +311,19 @@ class Seeder extends \Illuminate\Database\Seeder {
 	private function ifGzipped($file)
 	{
 		$fileInfo = finfo_open(FILEINFO_MIME_TYPE);
-		$file_mime_type = finfo_file($fileInfo, $file);
+		$fileMimeType = finfo_file($fileInfo, $file);
 		finfo_close($fileInfo);
 
-		return strcmp($file_mime_type, "application/x-gzip") == 0;
+		return strcmp($fileMimeType, "application/x-gzip") == 0;
 	}
-	
-	/**
-	 * Replace NULL string with real null value.
-	 *
-	 * @param  array  $row
-	 */
-	protected function fixNullValue(&$row)
+
+    /**
+     * Replace NULL string with real null value.
+     *
+     * @param  array $row
+     * @return array
+     */
+	protected function fixNullValues($row)
 	{
 		array_walk($row, function(&$value)
 		{
@@ -323,7 +332,26 @@ class Seeder extends \Illuminate\Database\Seeder {
 				$value = null;
 			}
 		});
+
+        return $row;
 	}
+
+    /**
+     * Prepare data row to insert.
+     *
+     * @param  array $row
+     * @param  array $headers
+     * @return array
+     */
+    protected function prepareRow(array $row, array $headers = [])
+    {
+        if ( ! empty($headers))
+        {
+            $row = array_combine($headers, $row);
+        }
+
+        return $this->fixNullValues($row);
+    }
 
 	/**
 	 * Retrieve database name.
