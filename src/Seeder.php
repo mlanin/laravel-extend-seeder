@@ -327,13 +327,9 @@ class Seeder extends \Illuminate\Database\Seeder {
      * @param  array $headers
      * @return array
      */
-    protected function prepareRow(array $row, array $headers = [])
+    protected function prepareRow(array $row, array $headers)
     {
-        if ( ! empty($headers))
-        {
-            $row = array_combine($headers, $row);
-        }
-
+        $row = array_combine($headers, $row);
         return $this->fixNullValues($row);
     }
 
