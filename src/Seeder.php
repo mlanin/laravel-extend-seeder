@@ -41,11 +41,6 @@ class Seeder extends \Illuminate\Database\Seeder {
 	protected static $truncate = false;
 
 	/**
-	 * @var bool
-	 */
-	protected static $csvHasHeaders = false;
-
-	/**
 	 * Create a new Seeder.
 	 */
 	public function __construct()
@@ -135,17 +130,6 @@ class Seeder extends \Illuminate\Database\Seeder {
 	public static function useTruncate()
 	{
 		return self::$truncate = true;
-	}
-
-	/**
-     * Csv files have headers on the first row.
-     * They will be used as column names.
-	 *
-	 * @return string
-	 */
-	public static function csvHasHeaders()
-	{
-		return self::$csvHasHeaders = true;
 	}
 
 	/**
@@ -273,7 +257,7 @@ class Seeder extends \Illuminate\Database\Seeder {
 			$i = 0;
 			while (($row = fgetcsv($handle, 0, $delimiter)) !== false)
 			{
-                if (self::$csvHasHeaders && empty($headers))
+                if (empty($headers))
                 {
                     $headers = $row;
                     continue;
