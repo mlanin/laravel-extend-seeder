@@ -4,7 +4,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Lanin\ExtendSeeder\Seeder;
-use Schema;
 
 class CsvSeederTest extends TestCase
 {
@@ -100,7 +99,7 @@ class CreateAccountsTable extends Migration {
 	 */
 	public function up()
 	{
-		Schema::create('accounts', function(Blueprint $table) {
+		\Schema::create('accounts', function(Blueprint $table) {
 			$table->increments('id');
 			$table->string('login', 40)->unique();
 			$table->boolean('active');
@@ -115,7 +114,7 @@ class CreateAccountsTable extends Migration {
 	 */
 	public function down()
 	{
-		Schema::drop('accounts');
+		\Schema::drop('accounts');
 	}
 
 }
