@@ -3,7 +3,7 @@
 use Illuminate\Database\Eloquent\Model;
 use ReflectionException;
 
-class Seeder extends \Illuminate\Database\Seeder
+abstract class Seeder extends \Illuminate\Database\Seeder
 {
 
     /**
