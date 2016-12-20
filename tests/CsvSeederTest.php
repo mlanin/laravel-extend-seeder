@@ -18,7 +18,7 @@ class CsvSeederTest extends TestCase
     /** @test */
     public function it_can_run_seed_model_from_csv_file()
     {
-        $this->seed('CsvSeederDatabaseSeeder');
+        $this->seed('CsvDatabaseSeeder');
 
         $this->seeInDatabase('accounts', ['login' => 'john.doe']);
     }
@@ -29,7 +29,7 @@ class CsvSeederTest extends TestCase
  *
  * @package Lanin\ExtendSeeder\Tests
  */
-class CsvSeederDatabaseSeeder extends Seeder
+class CsvDatabaseSeeder extends Seeder
 {
 
     /**
