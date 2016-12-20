@@ -1,4 +1,4 @@
-<?php namespace Lanin\ExtendSeeder\Tests;
+<?php
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Migrations\Migration;
@@ -7,21 +7,21 @@ use Lanin\ExtendSeeder\Seeder;
 
 class CsvSeederTest extends TestCase
 {
-	public function setUp()
-	{
-		parent::setUp();
+    public function setUp()
+    {
+        parent::setUp();
 
-		$migration = new CreateAccountsTable();
-		$migration->up();
-	}
+        $migration = new CreateAccountsTable();
+        $migration->up();
+    }
 
-	/** @test */
-	public function it_can_run_seed_model_from_csv_file()
-	{
-		$this->seed('Lanin\ExtendSeeder\Tests\CsvSeederDatabaseSeeder');
+    /** @test */
+    public function it_can_run_seed_model_from_csv_file()
+    {
+        $this->seed('CsvSeederDatabaseSeeder');
 
-		$this->seeInDatabase('accounts', ['login' => 'john.doe']);
-	}
+        $this->seeInDatabase('accounts', ['login' => 'john.doe']);
+    }
 }
 
 /**
@@ -32,23 +32,23 @@ class CsvSeederTest extends TestCase
 class CsvSeederDatabaseSeeder extends Seeder
 {
 
-	/**
-	 * Boot seeder.
-	 */
-	protected function boot()
-	{
-		parent::boot();
+    /**
+     * Boot seeder.
+     */
+    protected function boot()
+    {
+        parent::boot();
 
-		self::setCsvPath(realpath(dirname(__DIR__) . '/tests/fixture/csv'));
-	}
+        self::setCsvPath(realpath(dirname(__DIR__) . '/tests/fixture/csv'));
+    }
 
-	/**
-	 * Seed your database.
-	 */
-	public function run()
-	{
-		$this->seedModel('Lanin\ExtendSeeder\Tests\Accounts');
-	}
+    /**
+     * Seed your database.
+     */
+    public function run()
+    {
+        $this->seedModel('Account');
+    }
 }
 
 /**
@@ -58,20 +58,20 @@ class CsvSeederDatabaseSeeder extends Seeder
  */
 class AccountsTableSeeder extends Seeder
 {
-	/**
-	 * Overwrite database name.
-	 *
-	 * @var string
-	 */
-	protected static $database = 'tests';
+    /**
+     * Overwrite database name.
+     *
+     * @var string
+     */
+    protected static $database = 'tests';
 
-	/**
-	 * Seed model with CSV.
-	 */
-	public function run()
-	{
-		$this->seedWithCsv();
-	}
+    /**
+     * Seed model with CSV.
+     */
+    public function run()
+    {
+        $this->seedWithCsv();
+    }
 }
 
 /**
@@ -79,9 +79,9 @@ class AccountsTableSeeder extends Seeder
  *
  * @package Lanin\ExtendSeeder\Tests
  */
-class Accounts extends Model
+class Account extends Model
 {
-	protected $table = 'accounts';
+    protected $table = 'accounts';
 }
 
 /**
@@ -91,29 +91,29 @@ class Accounts extends Model
  */
 class CreateAccountsTable extends Migration {
 
-	/**
-	 * Run the migrations.
-	 *
-	 * @return void
-	 */
-	public function up()
-	{
-		\Schema::create('accounts', function(Blueprint $table) {
-			$table->increments('id');
-			$table->string('login', 40)->unique();
-			$table->boolean('active');
-			$table->timestamps();
-		});
-	}
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up()
+    {
+        \Schema::create('accounts', function(Blueprint $table) {
+            $table->increments('id');
+            $table->string('login', 40)->unique();
+            $table->boolean('active');
+            $table->timestamps();
+        });
+    }
 
-	/**
-	 * Reverse the migrations.
-	 *
-	 * @return void
-	 */
-	public function down()
-	{
-		\Schema::drop('accounts');
-	}
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        \Schema::drop('accounts');
+    }
 
 }
