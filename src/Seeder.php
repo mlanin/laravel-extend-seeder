@@ -1,401 +1,373 @@
-<?php namespace Lanin\ExtendSeeder;
+<?php
+
+namespace Lanin\ExtendSeeder;
 
 use Illuminate\Database\Eloquent\Model;
-use ReflectionException;
 
-abstract class Seeder extends \Illuminate\Database\Seeder
-{
+abstract class Seeder extends \Illuminate\Database\Seeder {
 
-    /**
-     * @var string
-     */
-    protected $environment = null;
+	/**
+	 * @var string
+	 */
+	protected $environment = null;
 
-    /**
-     * @var Model|null
-     */
-    protected $model = null;
+	/**
+	 * @var Model|null
+	 */
+	protected $model = null;
 
-    /**
-     * @var int
-     */
-    protected $chunkSize = 200;
+	/**
+	 * @var int
+	 */
+	protected $chunkSize = 200;
 
-    /**
-     * @var string|null
-     */
-    protected static $database = null;
+	/**
+	 * @var string
+	 */
+	protected $headers = [];
 
-    /**
-     * @var string
-     */
-    protected static $delimiter = ',';
+	/**
+	 * @var string|null
+	 */
+	protected static $database = null;
 
-    /**
-     * @var string
-     */
-    protected static $csvPath = '';
+	/**
+	 * @var string
+	 */
+	protected static $delimiter = ',';
 
-    /**
-     * @var bool
-     */
-    protected static $truncate = false;
+	/**
+	 * @var string
+	 */
+	protected static $csvPath = '';
 
-    /**
-     * Create a new Seeder.
-     */
-    public function __construct()
-    {
-        $this->boot();
-    }
+	/**
+	 * @var bool
+	 */
+	protected static $truncate = false;
 
-    /**
-     * Boot seeder.
-     */
-    protected function boot()
-    {
-        $this->assertCanSeed();
+	/**
+	 * Create a new Seeder.
+	 */
+	public function __construct()
+	{
+		$this->boot();
+	}
 
-        \DB::disableQueryLog();
-        Model::unguard();
-    }
+	/**
+	 * Boot seeder.
+	 */
+	protected function boot()
+	{
+		$this->assertCanSeed();
 
-    /**
-     * Check if seeder can be launched.
-     */
-    protected function assertCanSeed()
-    {
-        if ( ! is_null($this->environment) && ! \App::environment($this->environment))
-        {
-            throw new \RuntimeException("You can seed this data only on [{$this->environment}] environment.");
-        }
-    }
+		\DB::disableQueryLog();
+		Model::unguard();
+	}
 
-    /**
-     * Set default database name. Useful for seeding sqlite db.
-     *
-     * @param string $database
-     */
-    public static function setDatabaseName($database)
-    {
-        self::$database = $database;
-    }
+	/**
+	 * Check if seeder can be launched.
+	 *
+	 * @return bool
+	 */
+	protected function assertCanSeed()
+	{
+		if ( ! is_null($this->environment) && ! \App::environment($this->environment)) {
+			throw new \RuntimeException("You can seed this data only on [{$this->environment}] environment.");
+		}
+	}
 
-    /**
-     * Change path where csv files are stored.
-     *
-     * @param string $csvPath
-     */
-    public static function setCsvPath($csvPath)
-    {
-        self::$csvPath = $csvPath[0] == '/' ? $csvPath : base_path($csvPath);
-    }
+	/**
+	 * Set default database name. Useful for seeding sqlite db.
+	 *
+	 * @param string $database
+	 */
+	public static function setDatabaseName($database)
+	{
+		static::$database = $database;
+	}
 
-    /**
-     * Get path where csv files are stored.
-     *
-     * @return string
-     */
-    public static function getCsvPath()
-    {
-        return self::$csvPath;
-    }
+	/**
+	 * Change path where csv files are stored.
+	 *
+	 * @param string $csvPath
+	 */
+	public static function setCsvPath($csvPath)
+	{
+		static::$csvPath = base_path($csvPath);
+	}
 
-    /**
-     * Change cvs delimiter symbol.
-     *
-     * @param string $delimiter
-     */
-    public static function setCsvDelimiter($delimiter)
-    {
-        self::$delimiter = $delimiter;
-    }
+	/**
+	 * Get path where csv files are stored.
+	 *
+	 * @return string
+	 */
+	public static function getCsvPath()
+	{
+		return static::$csvPath;
+	}
 
-    /**
-     * Get cvs delimiter symbol.
-     *
-     * @return string
-     */
-    public static function getCsvDelimiter()
-    {
-        return self::$delimiter;
-    }
+	/**
+	 * Change cvs delimiter symbol.
+	 *
+	 * @param string $delimiter
+	 */
+	public static function setCsvDelimiter($delimiter)
+	{
+		static::$delimiter = $delimiter;
+	}
 
-    /**
-     * Use truncating of the table instead if deleting all rows.
-     *
-     * @return bool
-     */
-    public static function useTruncate()
-    {
-        return self::$truncate = true;
-    }
+	/**
+	 * Get cvs delimiter symbol.
+	 *
+	 * @return string
+	 */
+	public static function getCsvDelimiter()
+	{
+		return static::$delimiter;
+	}
 
-    /**
-     * Save seeding model.
-     *
-     * @param  mixed  $model
-     * @return $this
-     */
-    public function setModel($model)
-    {
-        $this->model = $this->resolveModel($model);
+	/**
+	 * Get cvs delimiter symbol.
+	 *
+	 * @return string
+	 */
+	public static function useTruncate()
+	{
+		return static::$truncate = true;
+	}
 
-        return $this;
-    }
+	/**
+	 * Save seeding model.
+	 *
+	 * @param  mixed  $model
+	 * @return $this
+	 */
+	public function setModel($model)
+	{
+		$this->model = $this->resolveModel($model);
 
-    /**
-     * Return seeding model.
-     *
-     * @return Model
-     */
-    public function getModel()
-    {
-        return $this->model;
-    }
+		return $this;
+	}
 
-    /**
-     * Launch seeder associated with the specified model.
-     * E.g. User model will be seeded via UsersTableSeeder, etc.
-     *
-     * @param  mixed $model
-     * @return \Illuminate\Database\Seeder
-     */
-    public function seedModel($model)
-    {
-        $model = $this->resolveModel($model);
-        $seederClass = studly_case($model->getTable()) . 'TableSeeder';
+	/**
+	 * Return seeding model.
+	 *
+	 * @return Model
+	 */
+	public function getModel()
+	{
+		return $this->model;
+	}
 
-        try
-        {
-            $seeder = $this->resolve($seederClass);
-        }
-        catch (ReflectionException $e)
-        {
-            $reflection = new \ReflectionClass($model);
-            $namespace  = $reflection->getNamespaceName();
-            $seederClass = $namespace . '\\' . $seederClass;
-            $seeder = $this->resolve($seederClass);
-        }
+	/**
+	 * Launch seeder associated with the specified model.
+	 * E.g. User model will be seeded via UsersTableSeeder, etc.
+	 *
+	 * @param  mixed $model
+	 * @return \Illuminate\Database\Seeder
+	 */
+	public function seedModel($model)
+	{
+		$class = studly_case($this->resolveModel($model)->getTable()) . 'TableSeeder';
 
-        if ($seeder instanceof \Lanin\ExtendSeeder\Seeder)
-        {
-            $seeder->setModel($model);
-        }
+		$seeder = $this->resolve($class);
 
-        $seeder->run();
+		if ($seeder instanceof \Lanin\ExtendSeeder\Seeder) {
+			$seeder->setModel($this->resolveModel($model));
+		}
 
-        return $seeder;
-    }
+		$seeder->run();
 
-    /**
-     * Seed model with CSV data.
-     * By default Seeder will try to find file in database/{$this->csvPath}/$database_$table.csv.
-     *
-     * @param  string  $csvFile
-     * @param  null  $model
-     */
-    public function seedWithCsv($csvFile = '', $model = null)
-    {
-        $model = $this->resolveModel($model);
+		return $seeder;
+	}
 
-        $this->clearTable($model);
+	/**
+	 * Seed model with CSV data.
+	 * By default Seeder will try to find file in database/{$this->csvPath}/$database_$table.csv.
+	 *
+	 * @param  string  $csvFile
+	 * @param  null  $model
+	 */
+	public function seedWithCsv($csvFile = '', $model = null)
+	{
+		$model = $this->resolveModel($model);
 
-        $csvFile  = $this->getCsvFile($model, $csvFile);
-        $inserted = $this->parseAndSeed($model, $csvFile, self::getCsvDelimiter());
+		$this->clearTable($model);
 
-        if (isset($this->command))
-        {
-            $this->command->getOutput()->writeln(
-                sprintf('<info>Seeded:</info> %s.%s (%d rows)', $this->getDatabaseName($model), $model->getTable(), $inserted)
-            );
-        }
-    }
+		$csvFile  = $this->getCsvFile($model, $csvFile);
+		$inserted = $this->parseAndSeed($model, $csvFile, static::getCsvDelimiter());
 
-    /**
-     * Find CSV file via model.
-     *
-     * @param  Model  $model
-     * @param  string  $filename
-     * @return string
-     */
-    protected function getCsvFile(Model $model, $filename = '')
-    {
-        $filename = $this->getCsvFilename($model, $filename);
+		if (isset($this->command)) {
+			$this->command->getOutput()->writeln(
+				sprintf('<info>Seeded:</info> %s.%s (%d rows)', $this->getDatabaseName($model), $model->getTable(), $inserted)
+			);
+		}
+	}
 
-        $basePath = self::getCsvPath() ?: database_path('seeds/csv');
+	/**
+	 * Find CSV file via model.
+	 *
+	 * @param  Model  $model
+	 * @param  string  $filename
+	 * @return string
+	 */
+	protected function getCsvFile(Model $model, $filename = '')
+	{
+		$filename = $this->getCsvFilename($model, $filename);
 
-        return $basePath . DIRECTORY_SEPARATOR . $filename;
-    }
+		$basePath = static::getCsvPath() ?: database_path('seeds/csv');
 
-    /**
-     * Convert CSV file to array of rows and seed them into the model.
-     *
-     * @param  Model  $model
-     * @param  string  $filename
-     * @param  string  $delimiter
-     * @return integer
-     */
-    protected function parseAndSeed(Model $model, $filename, $delimiter = ',')
-    {
-        $data 	  = [];
-        $headers  = [];
-        $inserted = 0;
+		return $basePath . DIRECTORY_SEPARATOR . $filename;
+	}
 
-        if ( ! file_exists($filename) || ! is_readable($filename))
-        {
-            throw new \RuntimeException(
-                sprintf("Can't find csv file [%s] for seeder [%s].", $filename, get_class($this))
-            );
-        }
+	/**
+	 * Convert CSV file to array of rows and seed them into the model.
+	 *
+	 * @param  Model  $model
+	 * @param  string  $filename
+	 * @param  string  $delimiter
+	 * @return array
+	 */
+	protected function parseAndSeed(Model $model, $filename, $delimiter = ',')
+	{
+		$data 	  = [];
+		$inserted = 0;
+		$header   = $this->headers;
 
-        $handle = $this->ifGzipped($filename) ? gzopen($filename, 'r') : fopen($filename, 'r');
+		if ( ! file_exists($filename) || ! is_readable($filename)) {
+			throw new \RuntimeException(
+				sprintf("Can't find csv file [%s] for seeder [%s].", $filename, get_class($this))
+			);
+		}
 
-        if ($handle !== false)
-        {
-            $i = 0;
-            while (($row = fgetcsv($handle, 0, $delimiter)) !== false)
-            {
-                if (empty($headers))
-                {
-                    $headers = $row;
-                    continue;
-                }
+		$handle = $this->ifGzipped($filename) ? gzopen($filename, 'r') : fopen($filename, 'r');
 
-                $data[] = $this->prepareRow($row, $headers);
+		if ($handle !== false) {
+			$i = 0;
+			while (($row = fgetcsv($handle, 0, $delimiter)) !== false) {
+				$this->fixNullValue($row);
 
-                $i++;
+				if (empty($header)) {
+					$header = $row;
+				} else {
+					$data[] = array_combine($header, $row);
+				}
 
-                if ($i == $this->chunkSize)
-                {
-                    $model->insert($data);
+				$i++;
 
-                    $i = 0;
-                    $data = [];
-                    $inserted += $this->chunkSize;
-                }
-            }
+				if ($i == $this->chunkSize) {
+					$model->insert($data);
 
-            $model->insert($data);
-            $inserted += count($data);
+					$inserted += $this->chunkSize;
+					$data = [];
+					$i = 0;
+				}
+			}
 
-            fclose($handle);
-        }
+			$model->insert($data);
+			$inserted += count($data);
 
-        return $inserted;
-    }
+			fclose($handle);
+		}
 
-    /**
-     * Check if csv file was gzipped.
-     *
-     * @param  string  $file
-     * @return bool
-     */
-    private function ifGzipped($file)
-    {
-        $fileInfo = finfo_open(FILEINFO_MIME_TYPE);
-        $fileMimeType = finfo_file($fileInfo, $file);
-        finfo_close($fileInfo);
+		return $inserted;
+	}
 
-        return strcmp($fileMimeType, "application/x-gzip") == 0;
-    }
+	/**
+	 * Check if csv file was gzipped.
+	 *
+	 * @param  string  $file
+	 * @return bool
+	 */
+	private function ifGzipped($file)
+	{
+		$fileInfo = finfo_open(FILEINFO_MIME_TYPE);
+		$file_mime_type = finfo_file($fileInfo, $file);
+		finfo_close($fileInfo);
 
-    /**
-     * Replace NULL string with real null value.
-     *
-     * @param  array $row
-     * @return array
-     */
-    protected function fixNullValues($row)
-    {
-        array_walk($row, function(&$value)
-        {
-            if ($value === 'NULL' || $value === 'null')
-            {
-                $value = null;
-            }
-        });
+		return strcmp($file_mime_type, "application/x-gzip") == 0;
+	}
 
-        return $row;
-    }
+	/**
+	 * Replace NULL string with real null value.
+	 *
+	 * @param  array  $row
+	 */
+	protected function fixNullValue(&$row)
+	{
+		array_walk($row, function(&$value) {
+			if ($value === 'NULL' || $value === 'null') {
+				$value = null;
+			}
+		});
+	}
 
-    /**
-     * Prepare data row to insert.
-     *
-     * @param  array $row
-     * @param  array $headers
-     * @return array
-     */
-    protected function prepareRow(array $row, array $headers)
-    {
-        $row = array_combine($headers, $row);
-        return $this->fixNullValues($row);
-    }
+	/**
+	 * Retrieve database name.
+	 *
+	 * @param  Model  $model
+	 * @return string
+	 */
+	protected function getDatabaseName(Model $model)
+	{
+		return static::$database ?: $model->getConnection()->getDatabaseName();
+	}
 
-    /**
-     * Retrieve database name.
-     *
-     * @param  Model  $model
-     * @return string
-     */
-    protected function getDatabaseName(Model $model)
-    {
-        return self::$database ?: $model->getConnection()->getDatabaseName();
-    }
+	/**
+	 * Prepares csv file name.
+	 *
+	 * @param  Model  $model
+	 * @param  string  $filename
+	 * @return string
+	 */
+	protected function getCsvFilename(Model $model, $filename)
+	{
+		$database = $this->getDatabaseName($model);
 
-    /**
-     * Prepares csv file name.
-     *
-     * @param  Model  $model
-     * @param  string  $filename
-     * @return string
-     */
-    protected function getCsvFilename(Model $model, $filename)
-    {
-        $database = str_replace([':'], '', $this->getDatabaseName($model));
-        return $filename ?: $database . '_' . $model->getTable() . '.csv';
-    }
+		return $filename ?: $database . '_' . $model->getTable() . '.csv';
+	}
 
-    /**
-     * Return model instance.
-     *
-     * @param  mixed  $model
-     * @return Model|null
-     * @throws \RuntimeException
-     */
-    protected function resolveModel($model)
-    {
-        switch (true)
-        {
-            case is_null($model) && ! is_null($this->model):
-                return $this->model;
-            case is_string($model) && class_exists($model):
-                return new $model;
-            case $model instanceof Model:
-                return $model;
-            default:
-                break;
+	/**
+	 * Return model instance.
+	 *
+	 * @param  mixed  $model
+	 * @return Model|null
+	 * @throws \RuntimeException
+	 */
+	protected function resolveModel($model)
+	{
+        if (is_null($model)) {
+            $model = $this->model;
         }
 
-        throw new \RuntimeException(
-            sprintf("Can't seed model [%s] in seeder [%s].", $model, get_class($this))
-        );
-    }
+		switch (true) {
+			case is_null($model) && ! is_null($this->model):
+				return $this->model;
+			case is_string($model) && class_exists($model):
+				return new $model;
+			case $model instanceof Model:
+				return $model;
+			default:
+				break;
+		}
 
-    /**
-     * Erase all data in the table.
-     *
-     * @param  Model  $model
-     */
-    protected function clearTable(Model $model)
-    {
-        if (self::$truncate)
-        {
-            $model->truncate();
-        }
-        else
-        {
-            \DB::table($model->getTable())->delete();
-        }
-    }
+		throw new \RuntimeException(
+			sprintf("Can't seed model [%s] in seeder [%s].", $model, get_class($this))
+		);
+	}
+
+	/**
+	 * Erase all data in the table.
+	 *
+	 * @param  Model  $model
+	 */
+	protected function clearTable(Model $model)
+	{
+		if (static::$truncate) {
+			$model->truncate();
+		} else {
+			\DB::table($model->getTable())->delete();
+		}
+	}
 }
