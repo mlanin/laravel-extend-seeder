@@ -11,16 +11,16 @@ class CsvSeederTest extends TestCase
     {
         parent::setUp();
 
-        $migration = new CreateAccountsTable();
+        $migration = new LesCreateAccountsTable();
         $migration->up();
     }
 
     /** @test */
     public function it_can_run_seed_model_from_csv_file()
     {
-        $this->seed('CsvDatabaseSeeder');
+        $this->seed('LesCsvDatabaseSeeder');
 
-        $this->seeInDatabase('accounts', ['login' => 'john.doe']);
+        $this->seeInDatabase('les_accounts', ['login' => 'john.doe']);
     }
 }
 
@@ -29,7 +29,7 @@ class CsvSeederTest extends TestCase
  *
  * @package Lanin\ExtendSeeder\Tests
  */
-class CsvDatabaseSeeder extends Seeder
+class LesCsvDatabaseSeeder extends Seeder
 {
 
     /**
@@ -47,7 +47,7 @@ class CsvDatabaseSeeder extends Seeder
      */
     public function run()
     {
-        $this->seedModel('Account');
+        $this->seedModel('LesAccount');
     }
 }
 
@@ -56,7 +56,7 @@ class CsvDatabaseSeeder extends Seeder
  *
  * @package Lanin\ExtendSeeder\Tests
  */
-class AccountsTableSeeder extends Seeder
+class LesAccountsTableSeeder extends Seeder
 {
     /**
      * Overwrite database name.
@@ -79,9 +79,9 @@ class AccountsTableSeeder extends Seeder
  *
  * @package Lanin\ExtendSeeder\Tests
  */
-class Account extends Model
+class LesAccount extends Model
 {
-    protected $table = 'accounts';
+    protected $table = 'les_accounts';
 }
 
 /**
@@ -89,7 +89,7 @@ class Account extends Model
  *
  * @package Lanin\ExtendSeeder\Tests
  */
-class CreateAccountsTable extends Migration {
+class LesCreateAccountsTable extends Migration {
 
     /**
      * Run the migrations.
@@ -98,7 +98,7 @@ class CreateAccountsTable extends Migration {
      */
     public function up()
     {
-        \Schema::create('accounts', function(Blueprint $table) {
+        \Schema::create('les_accounts', function(Blueprint $table) {
             $table->increments('id');
             $table->string('login', 40)->unique();
             $table->boolean('active');

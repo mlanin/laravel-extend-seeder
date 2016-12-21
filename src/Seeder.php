@@ -19,7 +19,7 @@ abstract class Seeder extends \Illuminate\Database\Seeder {
     /**
      * @var int
      */
-    protected $chunkSize = 200;
+    protected $chunkSize = null;
 
     /**
      * @var string
@@ -233,9 +233,11 @@ abstract class Seeder extends \Illuminate\Database\Seeder {
      */
     protected function parseAndSeed(Model $model, $filename, $delimiter = ',')
     {
+        $i        = 0;
         $data     = [];
         $inserted = 0;
         $header   = $this->headers;
+        $table    = $model->newQuery();
 
         if ( ! file_exists($filename) || ! is_readable($filename)) {
             throw new \RuntimeException(
@@ -246,8 +248,9 @@ abstract class Seeder extends \Illuminate\Database\Seeder {
         $handle = $this->ifGzipped($filename) ? gzopen($filename, 'r') : fopen($filename, 'r');
 
         if ($handle !== false) {
-            $i = 0;
             while (($row = fgetcsv($handle, 0, $delimiter)) !== false) {
+                $i++;
+
                 $this->fixNullValue($row);
 
                 if (empty($header)) {
@@ -256,10 +259,13 @@ abstract class Seeder extends \Illuminate\Database\Seeder {
                     $data[] = array_combine($header, $row);
                 }
 
-                $i++;
+                // See the #9 of www.sqlite.org/limits.html
+                if (is_null($this->chunkSize)) {
+                    $this->chunkSize = floor(999 / count($row));
+                }
 
                 if ($i == $this->chunkSize) {
-                    $model->insert($data);
+                    $table->insert($data);
 
                     $inserted += $this->chunkSize;
                     $data = [];
@@ -267,7 +273,7 @@ abstract class Seeder extends \Illuminate\Database\Seeder {
                 }
             }
 
-            $model->insert($data);
+            $table->insert($data);
             $inserted += count($data);
 
             fclose($handle);
