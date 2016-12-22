@@ -343,7 +343,7 @@ abstract class Seeder extends \Illuminate\Database\Seeder {
      * @return Model|null
      * @throws \RuntimeException
      */
-    protected function resolveModel($model)
+    protected function resolveModel($model = null)
     {
         if (is_null($model)) {
             $model = $this->model;
