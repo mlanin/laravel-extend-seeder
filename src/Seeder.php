@@ -12,7 +12,7 @@ abstract class Seeder extends \Illuminate\Database\Seeder {
     protected $environment = null;
 
     /**
-     * @var Model|null
+     * @var Model|string|null
      */
     protected $model = null;
 
@@ -340,18 +340,16 @@ abstract class Seeder extends \Illuminate\Database\Seeder {
      * Return model instance.
      *
      * @param  mixed  $model
-     * @return Model|null
+     * @return Model|string|null
      * @throws \RuntimeException
      */
-    protected function resolveModel($model)
+    protected function resolveModel($model = null)
     {
         if (is_null($model)) {
             $model = $this->model;
         }
 
         switch (true) {
-            case is_null($model) && ! is_null($this->model):
-                return $this->model;
             case is_string($model) && class_exists($model):
                 return new $model;
             case $model instanceof Model:
