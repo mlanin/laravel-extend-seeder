@@ -20,7 +20,7 @@ class CsvSeederTest extends TestCase
     {
         $this->seed('LesCsvDatabaseSeeder');
 
-        $this->seeInDatabase('les_accounts', ['login' => 'john.doe']);
+        $this->assertDatabaseHas('les_accounts', ['login' => 'john.doe']);
     }
 }
 
